@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [[ $# -lt 1 ]]; then
+	>&2 echo "Error: no arguments"
+	exit 1
+fi
+
+command=$1
+computer=$(uname -n)
+file=".plan"
+
+case $command in
+	login) command="logged in on $computer" ;;
+	logout) command="logged out from $computer" ;;
+	xlock) command="xlocked $computer" ;;
+	unxlock) command="un-xlocked $computer" ;;
+	*) >&2 echo "Error: invalid argument"
+	exit ;;
+esac
+
+shift
+if [[ $# -gt 0 ]]; then
+	command="$command with message \"$1\""
+fi
+
+echo $command > log.plan
