@@ -1,26 +1,38 @@
 #!/bin/bash
 
+#Validating input files
 if [[ $# -lt 1 ]]; then
 	>&2 echo "Error: no arguments"
 	exit 1
 fi
 
+#Declaring variables
 command=$1
+now="$(date +%y-%m-%d) $(date +%T:)"
 computer=$(uname -n)
 file=".plan"
+filerows=$(wc -l < $file)
 
 case $command in
-	login) command="logged in on $computer" ;;
-	logout) command="logged out from $computer" ;;
-	xlock) command="xlocked $computer" ;;
-	unxlock) command="un-xlocked $computer" ;;
+	login) command="$now logged in on $computer" ;;
+	logout) command="$now logged out from $computer" ;;
+	xlock) command="$now xlocked $computer" ;;
+	unxlock) command="$now un-xlocked $computer" ;;
 	*) >&2 echo "Error: invalid argument"
 	exit ;;
 esac
 
+#Checks for second argument
 shift
 if [[ $# -gt 0 ]]; then
 	command="$command with message \"$1\""
 fi
 
-echo $command > log.plan
+#Removes first line
+if [[ $(wc -l < $file) -gt 4 ]]; then
+	echo "$(tail -n 4 .plan)" > $file
+fi
+
+#Writes to .plan
+echo "$command" >> $file
+exit 0
