@@ -19,7 +19,7 @@ case $command in
 	xlock) command="$now xlocked $computer" ;;
 	unxlock) command="$now un-xlocked $computer" ;;
 	*) >&2 echo "Error: invalid argument"
-	exit ;;
+	exit 1;;
 esac
 
 #Checks for second argument

@@ -1,0 +1,28 @@
+.TH mstatus
+.SH NAME
+mstatus \- Logging commands to a .plan file
+
+.SH SYNOPSIS
+.B .\emanual
+[\fR\fIcommand\fR]
+["\fR\fImessage\fR"]
+
+.SH DESCRIPTION
+.B mstatus
+Logs commands such as login, logout, xlock and unxlock to a .plan file Together
+with time and date. The .plan file will be maximum of 5 rows long. Messages
+can also be added.
+
+
+.SH OPTIONS
+
+.TP
+.BR command=[\fR\fIlogin\fR|\fR\fIlogout\fR|\fR\fIxlock\fR|\fR\fIunxlock\fR]
+Set which command to log with.
+
+.TP
+.BR message
+Adds a message to log.
+
+.SH AUTHOUR
+Written by Buster Hultgren Warn
