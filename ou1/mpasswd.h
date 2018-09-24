@@ -25,11 +25,16 @@ user *buildUser (unsigned char *line);
 
 int convertStringToInt (unsigned char *str);
 
+void sortUserList (list *list);
+
+void sortUserArray (user *users[], int size);
+
 int lineValidation (unsigned char *line);
 
 int fileValidation (int argc, const char *argv[]);
 
 int strIsNum (unsigned char *str);
+
 /*
 * description: Reads a line from a file and saves it as an array of chars with
 * dynamically allocated memory.
@@ -40,9 +45,9 @@ unsigned char *readLine (FILE *fp);
 
 unsigned char* getNextWord (unsigned char *line, int *i);
 
-void printList (list *list);
+void printList (list *userList);
 
-void printUser (user *user);
+void printUser (user *tempUser);
 
 int userCompare (void *user1, void *user2);
 

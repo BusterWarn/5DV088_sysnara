@@ -19,7 +19,7 @@ typedef struct  list {
 	struct node *pos;
 } list;
 
-list *listEmpty ();
+list *listEmpty (void);
 
 int listIsEmpty (list *list);
 
@@ -29,7 +29,9 @@ void *listInspect (list *list);
 
 void listInsert (list *list, void *value);
 
-void listRemove (list *list, node *pos);
+void listModifyValue (list *list, void *newValue);
+
+void listRemove (list *list);
 
 void listFirst (list *list);
 

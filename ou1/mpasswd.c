@@ -1,5 +1,5 @@
 #include "linkedlist.h"
-#include "mpasswordsort.h"
+#include "mpasswd.h"
 
 int main (int argc, const char *argv[]) {
 
@@ -10,8 +10,10 @@ int main (int argc, const char *argv[]) {
 	        fprintf(stderr, " - quitting program\n");
 	        return 0;
 	 }
-	 list *list = buildList(fileType, argv);
-	 printList(list);
+	 list *userList = buildList(fileType, argv);
+
+	 sortUserList(userList);
+	 printList(userList);
 
 	return 1;
 }
@@ -30,7 +32,7 @@ list *buildList (int fileType, const char *argv[]) {
 		fp = fopen(argv[1], "r");
 	}
 
-	list *list = listEmpty();
+	list *userList = listEmpty();
 	unsigned char *line = readLine(fp);
 	int stage = 1;
 
@@ -39,7 +41,7 @@ list *buildList (int fileType, const char *argv[]) {
 		stage = lineValidation(line);
 		if (stage == 1) {
 
-			listInsert(list, (void *)buildUser(line));
+			listInsert(userList, (void *)buildUser(line));
 		} else if (stage == 0) {
 
 			printf("Invalid format of line: '%s'. Line will not be "
@@ -57,22 +59,22 @@ list *buildList (int fileType, const char *argv[]) {
 
 		fclose(fp);
 	}
-	return list;
+	return userList;
 }
 
 user *buildUser (unsigned char *line) {
 
 	int i = 0;
-	user *user = malloc(sizeof(*user));
-	user -> username = getNextWord(line, &i);
-	user -> password = getNextWord(line, &i);
-	user -> UID = convertStringToInt(getNextWord(line, &i));
-	user -> GID = convertStringToInt(getNextWord(line, &i));
-	user -> GECOS = getNextWord(line, &i);
-	user -> directory = getNextWord(line, &i);
-	user -> shell = getNextWord(line, &i);
+	user *newUser = malloc(sizeof(newUser));
+	newUser -> username = getNextWord(line, &i);
+	newUser -> password = getNextWord(line, &i);
+	newUser -> UID = convertStringToInt(getNextWord(line, &i));
+	newUser -> GID = convertStringToInt(getNextWord(line, &i));
+	newUser -> GECOS = getNextWord(line, &i);
+	newUser -> directory = getNextWord(line, &i);
+	newUser -> shell = getNextWord(line, &i);
 
-	return user;
+	return newUser;
 }
 
 int convertStringToInt (unsigned char *str) {
@@ -88,6 +90,48 @@ int convertStringToInt (unsigned char *str) {
 	return num;
 }
 
+void sortUserList (list *userList) {
+
+	int listSize  = listGetSize(userList);
+	user *users [listSize];
+	listFirst(userList);
+
+	for (int i = 0; i < listSize; i++) {
+
+		users[i] = (user *)listInspect(userList);
+		listNext(userList);
+	}
+
+	sortUserArray(users, listSize);
+
+	listFirst(userList);
+	for (int i = 0; i < listSize; i++) {
+
+		listModifyValue(userList, (void *) users[i]);
+		listNext(userList);
+	}
+}
+
+void sortUserArray (user *users[], int size) {
+
+	for (int i = 0; i < size; i++) {
+
+		int sortUser = 1;
+		for (int j = i; j > 0 && sortUser; j--) {
+
+			sortUser = userCompare((void *) users[j - 1],(void *) users[j]);
+			if (sortUser == 1) {
+
+				user *tempUser = users[j];
+				users[j] = users[j - 1];
+				users[j - 1] = tempUser;
+			} else {
+
+			}
+		}
+	}
+}
+
 int lineValidation (unsigned char *line) {
 
 
@@ -96,26 +140,26 @@ int lineValidation (unsigned char *line) {
 
 	if (line != NULL) {
 
-		printf("username - ");
 		unsigned char *username = getNextWord(line, &i);
 
 		if (i >= 32) {
 
-			printf("Invalid line, username to long\n");
 			validLine = 0;
 		}
-		printf("password - ");
+		// printf("username: %s\n", username);
 		unsigned char *password = getNextWord(line, &i);
-		printf("UID - ");
+		// printf("password: %s\n", password);
 		unsigned char *UID = getNextWord(line, &i);
-		printf("GID - ");
+		// printf("UID: %s\n", UID);
 		unsigned char *GID = getNextWord(line, &i);
-		printf("GECOS - ");
+		// printf("GID: %s\n", GID);
 		unsigned char *GECOS = getNextWord(line, &i);
-		printf("directory - ");
+		// printf("GECOS: %s\n", GECOS);
 		unsigned char *directory = getNextWord(line, &i);
-		printf("shell - ");
+		// printf("directory: %s\n", directory);
 		unsigned char *shell = getNextWord(line, &i);
+		// printf("shell: %s\n", shell);
+
 
 		if (username == NULL || UID == NULL || GID == NULL ||
 			directory == NULL || shell == NULL) {
@@ -124,10 +168,13 @@ int lineValidation (unsigned char *line) {
 			validLine = 0;
 		}
 
-		if (!strIsNum(UID) || !strIsNum(GID)) {
+		if (validLine) {
 
-			printf("Invalid line, not a number\n");
-			validLine = 0;
+			if (!strIsNum(UID) || !strIsNum(GID)) {
+
+				printf("Invalid line, not a number\n");
+				validLine = 0;
+			}
 		}
 
 		free(username);
@@ -246,8 +293,6 @@ unsigned char *readLine (FILE *fp) {
 		free(line);
 		line = NULL;
 	}
-
-	printf("-----Line: '%s'\n\n\n", line);
     return line;
 }
 
@@ -266,8 +311,13 @@ unsigned char* getNextWord (unsigned char *line, int *i) {
     char *word = NULL;
 
     if (line[*i] == '\0') {
-      wordFound = -1;
-    }
+		wordFound = -1;
+
+  	} else if (line[*i] == ':') {
+
+		wordFound = 2;
+	}
+
 
     while (wordFound >= 0) {
 
@@ -283,68 +333,62 @@ unsigned char* getNextWord (unsigned char *line, int *i) {
 
     	} else if (line[*i] == ':' || line[*i] == '\0') {
 
-			wordFound = -1;
-			word = malloc(sizeof(char) * (*i - startOfWord + 1));
-			char *loc = (char *)line;
-			strncpy(word, &loc[startOfWord], *i - startOfWord + 1);
-			word[*i - startOfWord] = '\0';
+			if (wordFound == 1) {
 
-			if (line[*i] == '\0') {
+				wordFound = -1;
+				word = malloc(sizeof(char) * (*i - startOfWord + 1));
+				char *loc = (char *)line;
+				strncpy(word, &loc[startOfWord], *i - startOfWord + 1);
+				word[*i - startOfWord] = '\0';
 
-				(*i)--;
+				if (line[*i] == '\0') {
+
+					(*i)--;
+				}
+			} else {
+
+				wordFound = -1;
 			}
 		}
 		(*i)++;
 	}
-	printf("word: '%s'\n", word);
     return (unsigned char *)word;
 }
 
-void printList (list *list) {
+void printList (list *userList) {
 
-	listFirst(list);
-	int size = listGetSize(list);
+	listFirst(userList);
+	int size = listGetSize(userList);
 
 	for (int i = 0; i < size; i++) {
 
-		printf("i: %d/%d - ", i, size);
-		user *user = listInspect(list);
-		printUser(user);
-		listNext(list);
+		user *tempUser = listInspect(userList);
+		printUser(tempUser);
+		listNext(userList);
 	}
 }
 
-void printUser (user *user) {
+void printUser (user *tempUser) {
 
-	if (user != NULL) {
+	if (tempUser != NULL) {
 
-		printf("%s:%s:%d:%d:%s:%s:%s\n", user -> username, user -> password,
-		user -> UID, user -> GID, user -> GECOS, user -> directory,
-		user -> shell);
-	} else {
-
-		printf("\nNULLNULLNULLNULLNULL\n\n");
+		printf("%d:%s\n", tempUser -> UID, tempUser -> username);
 	}
 }
 
 int userCompare (void *user1, void *user2) {
 
-	char *userName1 = ((user *)user1) -> username;
-	char *userName2 = ((user *)user2) -> username;
+	int UID1 = ((user *)user1) -> UID;
+	int UID2 = ((user *)user2) -> UID;
 	int difference = 0;
-	int i = 0;
 
-	while (userName1[i] != '\0' && userName2[i] != '\0' && difference == 0) {
+	if (UID1 < UID2) {
 
-		if (userName1[i] > userName2[i]) {
+		difference = -1;
+	} else if (UID1 > UID2) {
 
-			difference = 1;
-		} else if (userName1[i] < userName2[i]) {
-
-			difference = -1
-		}
-		i++;
-		return difference;
+		difference = 1;
 	}
 
+	return difference;
 }

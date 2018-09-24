@@ -46,18 +46,23 @@ void listInsert (list *list, void *value) {
 	list -> size++;
 }
 
-void listRemove (list *list, node *pos) {
+void listModifyValue (list *list, void *newValue) {
+
+	list -> pos -> value = newValue;
+}
+
+void listRemove (list *list) {
 
 	struct node* tempNode = NULL;
 
-	if (pos != NULL) {
+	if (list -> pos != NULL) {
 
-		if(pos -> next != NULL) {
+		if(list -> pos -> next != NULL) {
 
-			tempNode = pos -> next -> next;
-			free(pos -> next -> value);
-			free(pos -> next);
-			pos -> next = tempNode;
+			tempNode = list -> pos -> next -> next;
+			free(list -> pos -> next -> value);
+			free(list -> pos -> next);
+			list -> pos -> next = tempNode;
 			list -> size--;
 		}
 	}
