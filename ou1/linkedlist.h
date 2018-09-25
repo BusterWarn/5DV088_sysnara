@@ -1,43 +1,49 @@
-#ifndef linkedlist
-#define linkedlist
+#ifndef LINKEDLIST
+#define LINKEDLIST
 
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef int (*ValCmpFunc) (void *val1, void *val2);
 
-typedef struct node {
+typedef struct listnode listnode;
+
+typedef struct linkedlist linkedlist;
+
+struct listnode {
 
 	void *value;
-	struct node *next;
-} node;
+	listnode *next;
+};
 
-typedef struct  list {
+struct linkedlist {
 
 	int size;
-	struct node *first;
-	struct node *pos;
-} list;
+	linkedlist *first;
+	linkedlist *pos;
+};
 
-list *listEmpty (void);
+linkedlist *listEmpty (void);
 
-int listIsEmpty (list *list);
+int listIsEmpty (linkedlist *list);
 
-int listGetSize (list *list);
+int listGetSize (linkedlist *list);
 
-void *listInspect (list *list);
+void *listInspect (linkedlist *list);
 
-void listInsert (list *list, void *value);
+void listInsert (linkedlist *list, void *value);
 
-void listModifyValue (list *list, void *newValue);
+void listModifyValue (linkedlist *list, void *newValue);
 
-void listRemove (list *list);
+void listRemove (linkedlist *list);
 
-void listFirst (list *list);
+void listRemoveFromValue (linkedlist *list, void *value, ValCmpFunc valueCmp);
 
-void listNext (list *list);
+void listFirst (linkedlist *list);
 
-void listKill (list *list);
+void listNext (linkedlist *list);
+
+void listKill (linkedlist *list);
 
 
-#endif //linkedlist
+#endif //LINKEDLIST

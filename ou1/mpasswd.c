@@ -10,15 +10,15 @@ int main (int argc, const char *argv[]) {
 	        fprintf(stderr, " - quitting program\n");
 	        return 0;
 	 }
-	 list *userList = buildList(fileType, argv);
+	 linkedlist *list = buildList(fileType, argv);
 
-	 sortUserList(userList);
-	 printList(userList);
+	 sortList(list);
+	 printList(list);
 
 	return 1;
 }
 
-list *buildList (int fileType, const char *argv[]) {
+linkedlist *buildList (int fileType, const char *argv[]) {
 
 	FILE *fp;
 	if (fileType == STDIN) {
@@ -32,7 +32,7 @@ list *buildList (int fileType, const char *argv[]) {
 		fp = fopen(argv[1], "r");
 	}
 
-	list *userList = listEmpty();
+	linkedlist *list = listEmpty();
 	unsigned char *line = readLine(fp);
 	int stage = 1;
 
@@ -41,7 +41,7 @@ list *buildList (int fileType, const char *argv[]) {
 		stage = lineValidation(line);
 		if (stage == 1) {
 
-			listInsert(userList, (void *)buildUser(line));
+			listInsert(list, (void *)buildUser(line));
 		} else if (stage == 0) {
 
 			printf("Invalid format of line: '%s'. Line will not be "
@@ -59,22 +59,22 @@ list *buildList (int fileType, const char *argv[]) {
 
 		fclose(fp);
 	}
-	return userList;
+	return list;
 }
 
 user *buildUser (unsigned char *line) {
 
 	int i = 0;
-	user *newUser = malloc(sizeof(newUser));
-	newUser -> username = getNextWord(line, &i);
-	newUser -> password = getNextWord(line, &i);
-	newUser -> UID = convertStringToInt(getNextWord(line, &i));
-	newUser -> GID = convertStringToInt(getNextWord(line, &i));
-	newUser -> GECOS = getNextWord(line, &i);
-	newUser -> directory = getNextWord(line, &i);
-	newUser -> shell = getNextWord(line, &i);
+	user *u = malloc(sizeof(u));
+	u -> username = getNextWord(line, &i);
+	u -> password = getNextWord(line, &i);
+	u -> UID = convertStringToInt(getNextWord(line, &i));
+	u -> GID = convertStringToInt(getNextWord(line, &i));
+	u -> GECOS = getNextWord(line, &i);
+	u -> directory = getNextWord(line, &i);
+	u -> shell = getNextWord(line, &i);
 
-	return newUser;
+	return u;
 }
 
 int convertStringToInt (unsigned char *str) {
@@ -90,29 +90,29 @@ int convertStringToInt (unsigned char *str) {
 	return num;
 }
 
-void sortUserList (list *userList) {
+void sortList (linkedlist *list) {
 
-	int listSize  = listGetSize(userList);
+	int listSize  = listGetSize(list);
 	user *users [listSize];
-	listFirst(userList);
+	listFirst(list);
 
 	for (int i = 0; i < listSize; i++) {
 
-		users[i] = (user *)listInspect(userList);
-		listNext(userList);
+		users[i] = (user *)listInspect(list);
+		listNext(list);
 	}
 
-	sortUserArray(users, listSize);
+	sortArray(users, listSize);
 
-	listFirst(userList);
+	listFirst(list);
 	for (int i = 0; i < listSize; i++) {
 
-		listModifyValue(userList, (void *) users[i]);
-		listNext(userList);
+		listModifyValue(list, (void *) users[i]);
+		listNext(list);
 	}
 }
 
-void sortUserArray (user *users[], int size) {
+void sortArray (user *users[], int size) {
 
 	for (int i = 0; i < size; i++) {
 
@@ -355,24 +355,24 @@ unsigned char* getNextWord (unsigned char *line, int *i) {
     return (unsigned char *)word;
 }
 
-void printList (list *userList) {
+void printList (linkedlist *list) {
 
-	listFirst(userList);
-	int size = listGetSize(userList);
+	listFirst(list);
+	int size = listGetSize(list);
 
 	for (int i = 0; i < size; i++) {
 
-		user *tempUser = listInspect(userList);
+		user *tempUser = listInspect(list);
 		printUser(tempUser);
-		listNext(userList);
+		listNext(list);
 	}
 }
 
-void printUser (user *tempUser) {
+void printUser (user *u) {
 
-	if (tempUser != NULL) {
+	if (u != NULL) {
 
-		printf("%d:%s\n", tempUser -> UID, tempUser -> username);
+		printf("%d:%s\n", u -> UID, u -> username);
 	}
 }
 

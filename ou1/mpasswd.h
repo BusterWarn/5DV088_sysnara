@@ -19,15 +19,15 @@ typedef struct user {
 	unsigned char *shell;
 } user;
 
-list *buildList (int fileType, const char *argv[]);
+linkedlist *buildList (int fileType, const char *argv[]);
 
 user *buildUser (unsigned char *line);
 
 int convertStringToInt (unsigned char *str);
 
-void sortUserList (list *list);
+void sortList (linkedlist *list);
 
-void sortUserArray (user *users[], int size);
+void sortArray (user *users[], int size);
 
 int lineValidation (unsigned char *line);
 
@@ -45,7 +45,7 @@ unsigned char *readLine (FILE *fp);
 
 unsigned char* getNextWord (unsigned char *line, int *i);
 
-void printList (list *userList);
+void printList (linkedlist *userList);
 
 void printUser (user *tempUser);
 

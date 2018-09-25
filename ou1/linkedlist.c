@@ -1,44 +1,47 @@
 #include "linkedlist.h"
 
-list *listEmpty () {
 
-	list *list = malloc(sizeof(*list));
+linkedlist *listEmpty (void) {
+
+	linkedlist *list = malloc(sizeof(*list));
 	list -> first = NULL;
 	list -> pos = NULL;
 	list -> size = 0;
 	return list;
 }
 
-int listIsEmpty (list *list) {
+int listIsEmpty (linkedlist *list) {
 
 	return list -> size == 0;
 }
 
-int listGetSize (list *list) {
+int listGetSize (linkedlist *list) {
 
 	return list -> size;
 }
 
-void *listInspect (list *list) {
+void *listInspect (linkedlist *list) {
 
 	if (list -> pos != NULL) {
 
-		return list -> pos -> value;
+		struct listnode *node = list -> pos;
+		void *value = node -> value;
+		return value;
 	}
 	return NULL;
 }
 
-void listInsert (list *list, void *value) {
+void listInsert (linkedlist *list, void *value) {
 
 	if (list -> first == NULL) {
 
-		list -> first = malloc(sizeof(node));
+		list -> first = malloc(sizeof(listnode));
 		list -> pos = list -> first;
 		list -> first -> next = NULL;
 	} else {
 
-		struct node *tempNode = list -> first;
-		list -> first = malloc(sizeof(node));
+		struct listnode *tempNode = list -> first;
+		list -> first = malloc(sizeof(listnode));
 		list -> first -> next = tempNode;
 	}
 
@@ -46,12 +49,12 @@ void listInsert (list *list, void *value) {
 	list -> size++;
 }
 
-void listModifyValue (list *list, void *newValue) {
+void listModifyValue (linkedlist *list, void *newValue) {
 
 	list -> pos -> value = newValue;
 }
 
-void listRemove (list *list) {
+void listRemove (linkedlist *list) {
 
 	struct node* tempNode = NULL;
 
@@ -68,13 +71,13 @@ void listRemove (list *list) {
 	}
 }
 
-void listRemoveFromValue (list *list, void *value, ValCmpFunc valueCmp) {
+void listRemoveFromValue (linkedlist *list, void *value, ValCmpFunc valueCmp) {
 
-	struct node *pos = list -> first;
-	struct node *lastPos = list -> first;
+	struct listnode *pos = list -> first;
+	struct listnode *lastPos = list -> first;
 	while (pos != NULL) {
 
-		struct node *nextPos = pos -> next;
+		struct listnode *nextPos = pos -> next;
 		if (valueCmp(pos -> value, value) == 1) {
 
 			if (pos -> value != NULL) {
@@ -103,12 +106,12 @@ void listRemoveFromValue (list *list, void *value, ValCmpFunc valueCmp) {
 	}
 }
 
-void listFirst (list *list) {
+void listFirst (linkedlist *list) {
 
 	list -> pos = list -> first;
 }
 
-void listNext (list *list) {
+void listNext (linkedlist *list) {
 
 	if (list -> pos != NULL) {
 
@@ -116,9 +119,9 @@ void listNext (list *list) {
 	}
 }
 
-void listKill (list *list) {
+void listKill (linkedlist *list) {
 
-	struct node *pos = list -> first;
+	struct listnode *pos = list -> first;
 	while (pos != NULL) {
 
 		list -> first = pos -> next;
