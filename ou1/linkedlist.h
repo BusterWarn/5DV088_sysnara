@@ -10,19 +10,6 @@ typedef struct listnode listnode;
 
 typedef struct linkedlist linkedlist;
 
-struct listnode {
-
-	void *value;
-	listnode *next;
-};
-
-struct linkedlist {
-
-	int size;
-	linkedlist *first;
-	linkedlist *pos;
-};
-
 linkedlist *listEmpty (void);
 
 int listIsEmpty (linkedlist *list);

@@ -8,16 +8,7 @@
 #define FFILE 2
 
 
-typedef struct user {
-
-	unsigned char *username;
-	unsigned char *password;
-	int UID;
-	int GID;
-	unsigned char *GECOS;
-	unsigned char *directory;
-	unsigned char *shell;
-} user;
+typedef struct user user;
 
 linkedlist *buildList (int fileType, const char *argv[]);
 
@@ -30,6 +21,10 @@ void sortList (linkedlist *list);
 void sortArray (user *users[], int size);
 
 int lineValidation (unsigned char *line);
+
+int lineFieldsValidation (unsigned char *username, unsigned char *UID,
+					   	  unsigned char *GID, unsigned char *directory,
+					   	  unsigned char *shell);
 
 int fileValidation (int argc, const char *argv[]);
 
@@ -46,6 +41,10 @@ unsigned char *readLine (FILE *fp);
 unsigned char* getNextWord (unsigned char *line, int *i);
 
 void printList (linkedlist *userList);
+
+void killUserList (linkedlist *list);
+
+void killUserVariables (user *u);
 
 void printUser (user *tempUser);
 

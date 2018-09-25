@@ -1,6 +1,17 @@
 #include "linkedlist.h"
 #include "mpasswd.h"
 
+struct user {
+
+	unsigned char *username;
+	unsigned char *password;
+	int UID;
+	int GID;
+	unsigned char *GECOS;
+	unsigned char *directory;
+	unsigned char *shell;
+};
+
 int main (int argc, const char *argv[]) {
 
 	int fileType = fileValidation(argc, argv);
@@ -14,6 +25,7 @@ int main (int argc, const char *argv[]) {
 
 	 sortList(list);
 	 printList(list);
+	 killUserList(list);
 
 	return 1;
 }
@@ -65,7 +77,7 @@ linkedlist *buildList (int fileType, const char *argv[]) {
 user *buildUser (unsigned char *line) {
 
 	int i = 0;
-	user *u = malloc(sizeof(u));
+	user *u = malloc(sizeof(*u));
 	u -> username = getNextWord(line, &i);
 	u -> password = getNextWord(line, &i);
 	u -> UID = convertStringToInt(getNextWord(line, &i));
@@ -87,6 +99,7 @@ int convertStringToInt (unsigned char *str) {
 		num = (num * 10) + str[i] - '0';
 		i++;
 	}
+	free(str);
 	return num;
 }
 
@@ -146,46 +159,91 @@ int lineValidation (unsigned char *line) {
 
 			validLine = 0;
 		}
-		// printf("username: %s\n", username);
 		unsigned char *password = getNextWord(line, &i);
-		// printf("password: %s\n", password);
 		unsigned char *UID = getNextWord(line, &i);
-		// printf("UID: %s\n", UID);
 		unsigned char *GID = getNextWord(line, &i);
-		// printf("GID: %s\n", GID);
 		unsigned char *GECOS = getNextWord(line, &i);
-		// printf("GECOS: %s\n", GECOS);
 		unsigned char *directory = getNextWord(line, &i);
-		// printf("directory: %s\n", directory);
 		unsigned char *shell = getNextWord(line, &i);
-		// printf("shell: %s\n", shell);
 
 
-		if (username == NULL || UID == NULL || GID == NULL ||
-			directory == NULL || shell == NULL) {
+		validLine = lineFieldsValidation(username, UID, GID, directory,
+										 shell);
+		if (password != NULL) {
 
-			printf("Invalid line, someone here is NULL\n");
-			validLine = 0;
+			free(password);
 		}
 
-		if (validLine) {
+		if (GECOS != NULL) {
 
-			if (!strIsNum(UID) || !strIsNum(GID)) {
-
-				printf("Invalid line, not a number\n");
-				validLine = 0;
-			}
+			free(GECOS);
 		}
-
-		free(username);
-		free(password);
-		free(UID);
-		free(GECOS);
-		free(directory);
-		free(shell);
 	} else {
 
 		validLine = -1;
+	}
+	return validLine;
+}
+
+int lineFieldsValidation (unsigned char *username, unsigned char *UID,
+					   	  unsigned char *GID, unsigned char *directory,
+					   	  unsigned char *shell) {
+
+	int validLine = 1;
+	//Validating username
+	if (username == NULL) {
+
+		fprintf(stderr, "Invalid line: Field username is empty\n");
+		validLine = 0;
+	} else {
+
+		free(username);
+	}
+	//Validating UID
+	if (UID == NULL) {
+
+		fprintf(stderr, "Invalid line: Field UID is empty\n");
+		validLine = 0;
+	} else if (!strIsNum(UID)) {
+
+		fprintf(stderr, "Invalid line: UID is not a number");
+		validLine = 0;
+		free(UID);
+	} else {
+
+		free(UID);
+	}
+	//Validating GID
+	if (GID == NULL) {
+
+		fprintf(stderr, "Invalid line: Field GID is empty\n");
+		validLine = 0;
+	} else if (!strIsNum(GID)) {
+
+		fprintf(stderr, "Invalid line: GID is not a number");
+		validLine = 0;
+		free(GID);
+	} else {
+
+		free(GID);
+	}
+	//Validating directory
+	if (directory == NULL) {
+
+		fprintf(stderr, "Invalid line: Field directory is empty\n");
+		validLine = 0;
+	} else {
+
+		free(directory);
+	}
+	//Validating shell
+	if (shell == NULL) {
+
+		fprintf(stderr, "Invalid line: Field shell is empty\n");
+		validLine = 0;
+	} else {
+
+		free(shell);
 	}
 	return validLine;
 }
@@ -374,6 +432,30 @@ void printUser (user *u) {
 
 		printf("%d:%s\n", u -> UID, u -> username);
 	}
+}
+
+void killUserList (linkedlist *list) {
+
+	int listSize = listGetSize(list);
+	listFirst(list);
+
+	for (int i = 0; i < listSize; i++) {
+
+		printf("Killing user: ");
+		printUser((user *)listInspect(list));
+		killUserVariables((user *)listInspect(list));
+		listNext(list);
+	}
+	listKill(list);
+}
+
+void killUserVariables (user *u) {
+
+	free(u -> username);
+	free(u -> password);
+	free(u -> GECOS);
+	free(u -> directory);
+	free(u -> shell);
 }
 
 int userCompare (void *user1, void *user2) {

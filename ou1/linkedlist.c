@@ -1,5 +1,17 @@
 #include "linkedlist.h"
 
+struct listnode {
+
+	void *value;
+	listnode *next;
+};
+
+struct linkedlist {
+
+	int size;
+	listnode *first;
+	listnode *pos;
+};
 
 linkedlist *listEmpty (void) {
 
@@ -24,9 +36,7 @@ void *listInspect (linkedlist *list) {
 
 	if (list -> pos != NULL) {
 
-		struct listnode *node = list -> pos;
-		void *value = node -> value;
-		return value;
+		return list -> pos -> value;
 	}
 	return NULL;
 }
@@ -56,7 +66,7 @@ void listModifyValue (linkedlist *list, void *newValue) {
 
 void listRemove (linkedlist *list) {
 
-	struct node* tempNode = NULL;
+	listnode* tempNode = NULL;
 
 	if (list -> pos != NULL) {
 
