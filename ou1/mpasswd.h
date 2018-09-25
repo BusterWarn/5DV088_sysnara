@@ -44,8 +44,6 @@ void printList (linkedlist *userList);
 
 void killUserList (linkedlist *list);
 
-void killUserVariables (user *u);
-
 void printUser (user *tempUser);
 
 int userCompare (void *user1, void *user2);

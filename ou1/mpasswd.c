@@ -4,12 +4,7 @@
 struct user {
 
 	unsigned char *username;
-	unsigned char *password;
 	int UID;
-	int GID;
-	unsigned char *GECOS;
-	unsigned char *directory;
-	unsigned char *shell;
 };
 
 int main (int argc, const char *argv[]) {
@@ -78,13 +73,15 @@ user *buildUser (unsigned char *line) {
 
 	int i = 0;
 	user *u = malloc(sizeof(*u));
+	checkAlloc((void *)u);
 	u -> username = getNextWord(line, &i);
-	u -> password = getNextWord(line, &i);
+	//Skip password
+	unsigned char *password = getNextWord(line, &i);
+	if (password != NULL) {
+
+		free(password);
+	}
 	u -> UID = convertStringToInt(getNextWord(line, &i));
-	u -> GID = convertStringToInt(getNextWord(line, &i));
-	u -> GECOS = getNextWord(line, &i);
-	u -> directory = getNextWord(line, &i);
-	u -> shell = getNextWord(line, &i);
 
 	return u;
 }
@@ -320,6 +317,7 @@ unsigned char *readLine (FILE *fp) {
     int length = 0;
     int buffer = 100;
     unsigned char *line = malloc(sizeof(char) * buffer);
+	checkAlloc((void *)line);
     unsigned char currChar = fgetc(fp);
 
     while (currChar != '\n' && currChar != 4 && currChar != 255) {
@@ -395,6 +393,7 @@ unsigned char* getNextWord (unsigned char *line, int *i) {
 
 				wordFound = -1;
 				word = malloc(sizeof(char) * (*i - startOfWord + 1));
+				checkAlloc((void *)word);
 				char *loc = (char *)line;
 				strncpy(word, &loc[startOfWord], *i - startOfWord + 1);
 				word[*i - startOfWord] = '\0';
@@ -441,21 +440,10 @@ void killUserList (linkedlist *list) {
 
 	for (int i = 0; i < listSize; i++) {
 
-		printf("Killing user: ");
-		printUser((user *)listInspect(list));
-		killUserVariables((user *)listInspect(list));
+		free(((user *)listInspect(list)) -> username);
 		listNext(list);
 	}
 	listKill(list);
-}
-
-void killUserVariables (user *u) {
-
-	free(u -> username);
-	free(u -> password);
-	free(u -> GECOS);
-	free(u -> directory);
-	free(u -> shell);
 }
 
 int userCompare (void *user1, void *user2) {

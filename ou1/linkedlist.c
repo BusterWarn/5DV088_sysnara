@@ -16,6 +16,7 @@ struct linkedlist {
 linkedlist *listEmpty (void) {
 
 	linkedlist *list = malloc(sizeof(*list));
+	checkAlloc((void *)list);
 	list -> first = NULL;
 	list -> pos = NULL;
 	list -> size = 0;
@@ -46,12 +47,14 @@ void listInsert (linkedlist *list, void *value) {
 	if (list -> first == NULL) {
 
 		list -> first = malloc(sizeof(listnode));
+		checkAlloc((void *)(list -> first));
 		list -> pos = list -> first;
 		list -> first -> next = NULL;
 	} else {
 
 		struct listnode *tempNode = list -> first;
 		list -> first = malloc(sizeof(listnode));
+		checkAlloc((void *)(list -> first));
 		list -> first -> next = tempNode;
 	}
 
@@ -143,4 +146,13 @@ void listKill (linkedlist *list) {
 		pos = list -> first;
 	}
 	free(list);
+}
+
+void checkAlloc (void *mem) {
+
+	if (mem == NULL) {
+
+		perror("Error");
+		exit(errno);
+	}
 }

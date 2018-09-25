@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 typedef int (*ValCmpFunc) (void *val1, void *val2);
 
@@ -31,6 +32,8 @@ void listFirst (linkedlist *list);
 void listNext (linkedlist *list);
 
 void listKill (linkedlist *list);
+
+void checkAlloc (void *mem);
 
 
 #endif //LINKEDLIST
