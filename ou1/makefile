@@ -1,22 +1,22 @@
 CC = gcc
 CFLAGS = -std=gnu11 -g -Wall -Wextra -Werror -Wmissing-declarations -Wmissing-prototypes -Werror-implicit-function-declaration -Wreturn-type -Wparentheses -Wunused -Wold-style-definition -Wundef -Wshadow -Wstrict-prototypes -Wswitch-default -Wunreachable-code
 
-all:			mpasswd
+all:			mpasswdsort
 
-mpasswd:		mpasswd.o linkedlist.o
-	$(CC) mpasswd.o linkedlist.o -o mpasswd
+mpasswdsort:		mpasswdsort.o linkedlist.o
+	$(CC) mpasswdsort.o linkedlist.o -o mpasswdsort
 
-mpasswd.o:		mpasswd.c mpasswd.h linkedlist.h
-	$(CC) $(CFLAGS) -c mpasswd.c
+mpasswdsort.o:		mpasswdsort.c mpasswdsort.h linkedlist.h
+	$(CC) $(CFLAGS) -c mpasswdsort.c
 
 linkedlist.o: 		linkedlist.c linkedlist.h
 	$(CC) $(CFLAGS) -c linkedlist.c
 
-run:			mpasswd
-	./mpasswd pass.txt
+run:			mpasswdsort
+	./mpasswdsort pass.txt
 
-valgrind: 		mpasswd
-	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./mpasswd pass.txt
+valgrind: 		mpasswdsort
+	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./mpasswdsort pass.txt
 
 clean:
-	rm -f linkedlist *.o core
+	rm -f mpasswdsort *.o core
