@@ -1,17 +1,26 @@
 #include "mish.h"
 
-int main (int argc, const char *argv[]) {
+int main (void) {
 
-	if (argc > 1) {
+	int commands = 0;
+	char inputStr[MAXWORDS];
+	command comLine[MAXCOMMANDS];
 
-		changeDirectory(argv[1]);
+	printf("mish%% ");
+	fgets(inputStr, MAXWORDS, stdin);
+	commands = parse(inputStr, comLine);
+
+	while ((strcmp(comLine[0].argv[0], "exit")) != 0) {
+
+		printCommands(commands, comLine);
+
+		printf("mish%% ");
+		fgets(inputStr, MAXWORDS, stdin);
+		commands = parse(inputStr, comLine);
 	}
-	return 0;
-}
 
-void readInputLine (const char *line) {
-
-	
+	printf("Goodbye!\n");
+	return errno;
 }
 
 
@@ -43,4 +52,24 @@ void changeDirectory (const char *dir) {
 
 		printf("Current directory: %s\n", cwd);
 	}
+}
+
+void printCommands (int commands, command comLine[commands]) {
+
+	for (int i = 0; i < commands; i++) {
+
+		printCommand(comLine[i]);
+	}
+}
+
+void printCommand (command c) {
+
+	printf("Commands: (%d)\n", c.argc);
+	for (int i = 0; i < c.argc; i++) {
+
+		printf("%s\n", c.argv[i]);
+	}
+	printf("infile: %s\n", c.infile == NULL ? "N/A" : c.infile);
+	printf("outfile: %s\n", c.outfile == NULL ? "N/A" : c.outfile);
+	printf("internal: %d\n\n", c.internal);
 }
