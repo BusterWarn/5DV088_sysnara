@@ -2,27 +2,60 @@
 
 int main (void) {
 
-	int commands = 0;
-	char inputStr[MAXWORDS];
+	int comms = 0;
+	char buffer[MAXWORDS];
 	command comLine[MAXCOMMANDS];
 
 	printf("mish%% ");
-	fgets(inputStr, MAXWORDS, stdin);
-	commands = parse(inputStr, comLine);
+	while (fgets(buffer, MAXWORDS, stdin) != NULL &&
+		   strncmp(buffer, "exit", 4) != 0) {
 
-	while ((strcmp(comLine[0].argv[0], "exit")) != 0) {
+		if (buffer[strlen(buffer) - 1] == '\n') {
 
-		printCommands(commands, comLine);
+			buffer[strlen(buffer) - 1] = '\0';
+		}
+		comms = parse(buffer, comLine);
 
+		executeCommands(comms, comLine);
 		printf("mish%% ");
-		fgets(inputStr, MAXWORDS, stdin);
-		commands = parse(inputStr, comLine);
 	}
 
 	printf("Goodbye!\n");
 	return errno;
 }
 
+void executeCommands (int comms, command comLine[comms]) {
+
+	pid_t children[comms];
+	int parent = 1;
+
+	for (int i = 0; i < comms && parent == 1; i++) {
+
+		children[i] = fork();
+		if (children[i] < 0 ) {
+
+			perror("You forked up!");
+		} else if (children[i] > 0) {
+
+			parent = 0;
+			executeCommand(comLine[i]);
+			printf("Child here!\n");
+		} else {
+
+			waitpid(children[i]); //Research man waitpid you forking dup
+			printf("Me estoy gusta parent porkflavor!\n");
+		}
+	}
+}
+
+void executeCommand (command c) {
+
+	if (execvp(c.argv[0], c.argv) < 0) {
+
+		fprintf(stderr, "Invalid command - ");
+		perror(c.argv[0]);
+	}
+}
 
 void echo (int argc, const char *argv[]) {
 
