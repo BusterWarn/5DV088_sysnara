@@ -1,32 +1,37 @@
 #ifndef MISH
 #define MISH
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/wait.h>
-
 #include "parser.h"
-#include "execute.h"
 
 #define UP 1
 #define DOWN -1
 #define HOME 0
 
-//void readInputLine (const char *line);
+static pid_t CHILDPIDS[MAXCOMMANDS];
+static int NRCHILDREN;
 
-void executeCommands (int comms, command comLine[comms]);
+void executeExternalCommands (int comms, command comLine[comms]);
 
 void executeCommand (command c);
 
-void echo (int argc, const char *argv[]);
+int openPipes(int nrOfPipes, int pipes[nrOfPipes][2]);
 
-void changeDirectory (const char *dir);
+void closePipes(int nrOfPipes, int pipes[nrOfPipes][2]);
+
+void waitForChildren(int nrOfChildren, pid_t children[nrOfChildren]);
+
+void executeEcho (command c);
+
+void executeCd (command c);
+
+int containsInternalCommands (int comms, command comLine[comms]);
+
+void printWithoutQuotationMarks(char *str);
 
 void printCommands (int comms, command comLine[comms]);
 
 void printCommand (command c);
+
+void terminateChildren (int signo);
 
 #endif //MISH

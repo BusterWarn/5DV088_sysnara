@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "execute.h"
 
@@ -15,26 +16,25 @@ int dupPipe(int pip[2], int end, int destfd) {
 
 	if (!(end == READ_END || end == WRITE_END)) {
 
-		fpintf(stderr, "meh1");
+		fprintf(stderr, "dupPipe - Must dup to READ_END or WRITE_END\n");
 		destfd = -1;
 	} else {
 
-		if (end == READ_END && destfd != STDIN_FILENO ||
-			end == WRITE_END && destfd != STDOUT_FILENO) {
-
-				fprintf(stderr,"meh2");
-				destfd = -1;
-		} else {
+		if ((end == READ_END && destfd == STDIN_FILENO) ||
+			(end == WRITE_END && destfd == STDOUT_FILENO)) {
 
 			destfd = dup2(pip[end], destfd);
 
 			if (destfd < 0) {
-				
-				perror("mehdup");
+
+				perror("Dup to pipe");
 			}
+		} else {
+
+			fprintf(stderr,"dupPipe - Invalid arguments\n");
+			destfd = -1;
 		}
 	}
-
 	return destfd;
 }
 
@@ -49,29 +49,29 @@ int dupPipe(int pip[2], int end, int destfd) {
  */
 int redirect(char *filename, int flags, int destfd) {
 
-	if (flags == O_RDONLY && destfd != STDIN_FILENO ||
-		flags == O_WRONLY && destfd != STDOUT_FILENO) {
+	if ((flags == O_RDONLY && destfd != STDIN_FILENO) ||
+		(flags == O_WRONLY && destfd != STDOUT_FILENO)) {
 
 			fprintf(stderr, "Redirect must be done with stdin with flag"
 							" O_RDONLY or stdout with flag O_WRONLY\n");
 			destfd = -1;
 	} else if (destfd == STDIN_FILENO) {
 
-		if (access(filename, F_OK)) {
+		if (access(filename, F_OK) >= 0) {
 
 			destfd = open(filename, O_RDONLY);
 
 			if (destfd >= 0) {
 
-				if (dup2(STDIN_FILENO, destfd) < 0) {
+				if (dup2(destfd, STDIN_FILENO) < 0) {
 
-					perror("cannot dup stdin to %s\n", filename);
+					perror("cannot dup stdin\n");
 					destfd = -1;
 				}
 				close(destfd);
 			} else {
 
-				perror("redirect stdin to %s", filename);
+				perror("redirect stdin");
 			}
 		} else {
 
@@ -80,25 +80,26 @@ int redirect(char *filename, int flags, int destfd) {
 		}
 	} else if (destfd == STDOUT_FILENO) {
 
-		if (!access(filename, F_OK)) {
+		if (access(filename, F_OK) < 0) {
 
-			destfd = open(filename, O_WRONLY);
+			destfd = open(filename, O_RDWR | O_CREAT,
+						            S_IRUSR | S_IRGRP | S_IROTH);
 
 			if (destfd >= 0) {
 
-				if (dup2(STDOUT_FILENO, destfd) < 0) {
+				if (dup2(destfd, STDOUT_FILENO) < 0) {
 
-					perror("redirect stdout to %s", filename);
+					perror("redirect stdout");
 					destfd = -1;
 				}
 				close(destfd);
 			} else {
 
-				perror("redirect stdout to %s", filename);
+				perror("redirect stdout");
 			}
 		} else {
 
-			frpintf(stderr, "file %s already exists\n", filename);
+			fprintf(stderr, "file %s already exists\n", filename);
 			destfd = -1;
 		}
 	}
