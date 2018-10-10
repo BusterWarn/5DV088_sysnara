@@ -1,4 +1,4 @@
- #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -14,11 +14,11 @@
 int main (void) {
 
 	NRCHILDREN = 0;
-	signal(SIGINT, terminateChildren);
+	signalHandler(SIGINT, terminateChildren);
 
-	int comms = 0;
+	int nrComms = 0;
 	char buffer[MAXWORDS];
-	command comLine[MAXCOMMANDS];
+	command comLine[MAXCOMMANDS + 1];
 
 	fprintf(stderr, "mish%% ");
 	fflush(stderr);
@@ -30,15 +30,16 @@ int main (void) {
 
 			buffer[strlen(buffer) - 1] = '\0';
 		}
-		comms = parse(buffer, comLine);
+		nrComms = parse(buffer, comLine);
 
-		if (containsInternalCommands(comms, comLine) == 0) {
+		if (containsInternalCommands(nrComms, comLine) == 0) {
 
-			executeExternalCommands(comms, comLine);
-		} else if (strncmp(comLine[0].argv[0], "echo", 4) == 0 && comms == 1) {
+			executeExternalCommands(nrComms, comLine);
+		} else if (strncmp(comLine[0].argv[0], "echo", 4) == 0 &&
+				   nrComms == 1) {
 
 			executeEcho(comLine[0]);
-		} else if (strncmp(comLine[0].argv[0], "cd", 2) == 0 && comms == 1) {
+		} else if (strncmp(comLine[0].argv[0], "cd", 2) == 0 && nrComms == 1) {
 
 			executeCd(comLine[0]);
 		} else {
@@ -53,107 +54,12 @@ int main (void) {
 	return errno;
 }
 
-void executeExternalCommands (int comms, command comLine[comms]) {
-
-	pid_t children[comms];
-	int pipes[comms - 1][2];
-	int parent = openPipes(comms - 1, pipes);
-
-	for (int i = 0; i < comms && parent == 1; i++) {
-
-		children[i] = fork();
-
-		if (children[i] < 0 ) {					// FAILED FORK
-
-			perror("You forked up!");
-		} else if (children[i] > 0) {			// PARENT
-
-			CHILDPIDS[NRCHILDREN] = children[i];
-			NRCHILDREN++;
-		} else {								// CHILD
-
-			parent = 0;
-
-			if (i < comms - 1) {
-
-				dupPipe(pipes[i], WRITE_END, STDOUT_FILENO);
-			}
-			if (i > 0) {
-
-				dupPipe(pipes[i - 1], READ_END, STDIN_FILENO);
-			}
-			if (i == comms - 1 && comLine[i].outfile != NULL) {
-
-				redirect(comLine[i].outfile, WRITE_END, STDOUT_FILENO);
-			}
-			if (i == 0 && comLine[i].infile != NULL) {
-
-				redirect(comLine[i].infile, READ_END, STDIN_FILENO);
-			}
-
-			closePipes(comms - 1, pipes);
-			executeCommand(comLine[i]);
-		}
-	}
-
-	if (parent == 1) {
-
-		closePipes(comms - 1, pipes);
-		waitForChildren(comms, children);
-		NRCHILDREN = 0;
-	}
-}
-
-void executeCommand (command c) {
-
-	if (execvp(c.argv[0], c.argv) < 0) {
-
-		fprintf(stderr, "Invalid command - ");
-		perror(c.argv[0]);
-		exit(1);
-	}
-}
-
-int openPipes(int nrOfPipes, int pipes[nrOfPipes][2]) {
-
-	int pipesNoError = 1;
-	for (int i = 0; i < nrOfPipes && pipesNoError > 0; i++) {
-
-		if (pipe(pipes[i]) < 0) {
-
-			perror("Opening parent pipes");
-			pipesNoError = -1;
-		}
-	}
-	return pipesNoError;
-}
-
-void closePipes (int nrOfPipes, int pipes[nrOfPipes][2]) {
-
-	for (int i = 0; i < nrOfPipes; i++) {
-
-		if (close(pipes[i][READ_END])) {
-
-			perror("Closing pipe's READ_END");
-		}
-		if (close(pipes[i][WRITE_END])) {
-
-			perror("Closing pipe's WRITE_END");
-		}
-	}
-}
-
-void waitForChildren(int nrOfChildren, pid_t children[nrOfChildren]) {
-
-	for (int i = 0; i < nrOfChildren; i++) {
-
-		if (waitpid(children[i], NULL, 0) < 0) {
-
-			perror("waitpid");
-		}
-	}
-}
-
+/*
+* description: Internal echo command. Writes a string to standard output. Will
+* remove quotation marks (").
+* param[in]: c - Command struct with the echo command. All command line
+* arguments in argv[] will be printed.
+*/
 void executeEcho (command c) {
 
 	for (int i = 1; i < c.argc; i++) {
@@ -169,7 +75,11 @@ void executeEcho (command c) {
 	}
 }
 
-void printWithoutQuotationMarks(char *str) {
+/*
+* description: Writes a string to stdout without quotation marks.
+* param[in]: str - The string.
+*/
+void printWithoutQuotationMarks (char *str) {
 
 	int usedBackSlash = 0;
 	for (int i = 0; str[i] != '\0'; i++) {
@@ -190,12 +100,20 @@ void printWithoutQuotationMarks(char *str) {
 	}
 }
 
+/*
+* description: Internal cd command. Changes directory either up or down in the
+* directory tree. Will change to home directory if no command line argument is
+* given in c.
+* param[in]: c - Command struct with the cd command. First command line
+* argument (argv[1]) should be the string to requested directory.
+*/
 void executeCd (command c) {
 
 	if (c.argc > 1) {
 
 		if (chdir(c.argv[1]) < 0) {
 
+			fprintf(stderr, "%s - ", c.argv[0]);
 			perror("cd");
 		}
 	} else if (c.argc == 1) {
@@ -207,10 +125,17 @@ void executeCd (command c) {
 	}
 }
 
-int containsInternalCommands (int comms, command comLine[comms]) {
+/*
+* description: Checks if a command line contains any internal commands ("echo"
+* or "cd")
+* param[in]: nrComms - Number of commands.
+* param[in]: comLine[] - The command line: an array containing commands.
+* return: If command line contaings internal command; 1, else -1.
+*/
+int containsInternalCommands (int nrComms, command comLine[nrComms]) {
 
 	int internalCommands = 0;
-	for (int i = 0; i < comms && internalCommands == 0; i++) {
+	for (int i = 0; i < nrComms && internalCommands == 0; i++) {
 
 		if (strncmp(comLine[i].argv[0], "echo", 4) == 0 ||
 			strncmp(comLine[i].argv[0], "cd", 2) == 0) {
@@ -221,26 +146,143 @@ int containsInternalCommands (int comms, command comLine[comms]) {
 	return internalCommands;
 }
 
-void printCommands (int commands, command comLine[commands]) {
+/*
+* description: Executes input commands if they are not "echo" or "cd". If two
+* or more commands are created, a pipe will be created and linked between each
+* command input and output. The first and/or last command input/output can
+* also be redirected to a file.
+* param[in]: nrComm - Number of commands.
+* param[in]: comLine - Command array with commands.
+*/
+void executeExternalCommands (int nrComms, command comLine[nrComms]) {
 
-	for (int i = 0; i < commands; i++) {
+	int nrPipes = nrComms - 1;
+	int pipes[nrPipes - 1][2];
+	int parent = openPipes(nrPipes, pipes);
+	pid_t children[nrComms];
 
-		printCommand(comLine[i]);
+	for (int i = 0; i < nrComms && parent == 1; i++) {
+
+		children[i] = fork();
+
+		if (children[i] < 0 ) {					// FAILED FORK
+
+			perror("You forked up!");
+		} else if (children[i] > 0) {			// PARENT
+
+			CHILDPIDS[NRCHILDREN] = children[i];
+			NRCHILDREN++;
+		} else {								// CHILD
+
+			parent = 0;
+
+			if (i < nrPipes) {
+
+				dupPipe(pipes[i], WRITE_END, STDOUT_FILENO);
+			}
+			if (i > 0) {
+
+				dupPipe(pipes[i - 1], READ_END, STDIN_FILENO);
+			}
+			if (i == nrComms - 1 && comLine[i].outfile != NULL) {
+
+				redirect(comLine[i].outfile, WRITE_END, STDOUT_FILENO);
+			}
+			if (i == 0 && comLine[i].infile != NULL) {
+
+				redirect(comLine[i].infile, READ_END, STDIN_FILENO);
+			}
+
+			closePipes(nrPipes, pipes);
+			executeCommand(comLine[i]);
+		}
+	}
+
+	if (parent == 1) {
+
+		closePipes(nrPipes, pipes);
+		waitForChildren(nrComms, children);
+		NRCHILDREN = 0;
 	}
 }
 
-void printCommand (command c) {
+/*
+* description: Executes a command (ideally from a child process) with execvp.
+* param[in]: c - The command to be executed.
+*/
+void executeCommand (command c) {
 
-	printf("Commands: (%d)\n", c.argc);
-	for (int i = 0; i < c.argc; i++) {
+	if (execvp(c.argv[0], c.argv) < 0) {
 
-		printf("%s\n", c.argv[i]);
+		fprintf(stderr, "Invalid command - ");
+		perror(c.argv[0]);
+		exit(1);
 	}
-	printf("infile: %s\n", c.infile == NULL ? "N/A" : c.infile);
-	printf("outfile: %s\n", c.outfile == NULL ? "N/A" : c.outfile);
-	printf("internal: %d\n\n", c.internal);
 }
 
+/*
+* description: Open a number of pipes and store them in array pipes.
+* param[in]: nrPipes - Number of pipes.
+* param[in]: pipes[] - The array storing the pipes.
+* return: If succesfull; 1, else -1.
+*/
+int openPipes(int nrPipes, int pipes[nrPipes][2]) {
+
+	int noError = 1;
+	for (int i = 0; i < nrPipes && noError > 0; i++) {
+
+		if (pipe(pipes[i]) < 0) {
+
+			perror("Opening parent pipes");
+			noError = -1;
+		}
+	}
+	return noError;
+}
+
+/*
+* description: Close all pipes in the array pipes[]
+* param[in]: nrPipes - Number of pipes.
+* param[in]: pipes[] - The array containing the pipes to be closed.
+*/
+void closePipes (int nrPipes, int pipes[nrPipes][2]) {
+
+	for (int i = 0; i < nrPipes; i++) {
+
+		if (close(pipes[i][READ_END]) < 0) {
+
+			perror("Closing pipe's READ_END");
+		}
+		if (close(pipes[i][WRITE_END]) < 0) {
+
+			perror("Closing pipe's WRITE_END");
+		}
+	}
+}
+
+/*
+* description: For all created child processes with PID's stored in children[],
+* current process (ideally parent) will call waitpid() for each of them.
+* param[in]: nrChildren - Number of children.
+* param[in]: children[] - Array with PID's for the children.
+*/
+void waitForChildren (int nrChildren, pid_t children[nrChildren]) {
+
+	for (int i = 0; i < nrChildren; i++) {
+
+		if (waitpid(children[i], NULL, 0) < 0) {
+
+			perror("waitpid");
+		}
+	}
+}
+
+/*
+* description: Sends a signal with kill() to all childproceses. PID's for
+* children should be stored in global var CHILDPIDS. Number of children should
+* be stored in global var NRCHILDREN.
+* param[in]: signo - The signal to be sent to each of the children.
+*/
 void terminateChildren (int signo)  {
 
 	for (int i = 0; i < NRCHILDREN; i++) {

@@ -1,28 +1,25 @@
+#include <stdio.h>
 #include <signal.h>
 #include "sighant.h"
 
+/*
+* description: Signal function that handles a signal with sigaction().
+* param[in]: signo - The signal.
+* param[in]: Sigfunc - Function pointer to a Signal handler function. Will be
+* sa_handler for sigaction struct.
+*/
+void signalHandler (int signo, Sigfunc *sigFunc) {
 
-Sigfunc *signal(int signo, Sigfunc *func) {
+	struct sigaction act;
+	act.sa_handler = sigFunc;
+	act.sa_flags |= SA_RESTART;
+	
+	if (sigemptyset(&act.sa_mask) < 0) {
 
-	struct sigaction act, oact;
-	act.sa_handler = func;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = 0;
-
-	if (signo == SIGALRM) {
-
-		#ifdef SA_INTERRUPT
-		act.sa_flags |= SA_INTERRUPT;
-		#endif
-	} else {
-
-		#ifdef SA_RESTART
-		act.sa_flags |= SA_RESTART;
-		#endif
+		perror("sigemptyset()");
 	}
-	if (sigaction(signo, &act, &oact) < 0) {
+	if (sigaction(signo, &act, NULL) < 0) {
 
-		return(SIG_ERR);
+		perror("sicacton()");
 	}
-	return(oact.sa_handler);
 }
