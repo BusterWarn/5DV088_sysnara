@@ -1,3 +1,13 @@
+/*
+* sighant - signal handler interface. Will take a signal and a signal handler
+* function and send them with sigaction. SA_RESTART will be only flags applied
+* to signal handler function.
+*
+* Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
+*
+* Final build: 2018-10-09
+*/
+
 #include <stdio.h>
 #include <signal.h>
 #include "sighant.h"
@@ -13,7 +23,7 @@ void signalHandler (int signo, Sigfunc *sigFunc) {
 	struct sigaction act;
 	act.sa_handler = sigFunc;
 	act.sa_flags |= SA_RESTART;
-	
+
 	if (sigemptyset(&act.sa_mask) < 0) {
 
 		perror("sigemptyset()");

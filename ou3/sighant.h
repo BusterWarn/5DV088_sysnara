@@ -1,6 +1,15 @@
+/*
+* sighant - signal handler interface. Will take a signal and a signal handler
+* function and send them with sigaction. SA_RESTART will be only flags applied
+* to signal handler function.
+*
+* Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
+*
+* Final build: 2018-10-09
+*/
+
 #ifndef SIGHANT
 #define SIGHANT
-
 
 typedef void Sigfunc(int);
 

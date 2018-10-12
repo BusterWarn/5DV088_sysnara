@@ -1,3 +1,20 @@
+/*
+* mish - A shell program that can take multiple commands and redirect their
+* stdin/stdout. Commands are separeted by pipes "|". The first and last command
+* can also have their stdin/stdout redirected to files with the "<" and ">"
+* operators.
+*
+* Mish have two internal commands - cd and echo. These commands can not be
+* redirected to files and they cannot be linked with pipes.
+*
+* Mish do not take any arguments. To end mish, write "exit", "quit" or send an
+* EOF (^D) to stdin.
+*
+* Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
+*
+* Final build: 2018-10-09
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
