@@ -17,8 +17,7 @@ void parseArgs (args *a, int argc, char *argv[]) {
 		switch (opt) {
 
 			case 't':
-				a -> type = optarg[0];
-				if (a -> type != 'd' && a -> type != 'f' && a -> type != 'l') {
+				if (optarg[0] != 'd' && optarg[0] != 'f' && optarg[0] != 'l') {
 
 					fprintf(stderr, "Invalid argument: -t must be set to d, "
 									 "f or l\n");
@@ -29,11 +28,19 @@ void parseArgs (args *a, int argc, char *argv[]) {
 					fprintf(stderr, "Invalid argument: -t takes exactly one "
 									"argument\n");
 					argsKill(a);
-					exit(-1);
+					exit(1);
 				}
+				a -> type = optarg[0];
 				break;
 
 			case 'p':
+				if (optarg[0] == '\0') {
+
+					fprintf(stderr, "Invalid argument: -p takes exactly one "
+									 "argument\n");
+					argsKill(a);
+					exit(1);
+				}
 				nrthr = strToInt(optarg);
 				if (nrthr > 0) {
 
@@ -42,15 +49,15 @@ void parseArgs (args *a, int argc, char *argv[]) {
 				break;
 
 			default:
-				fprintf(stderr, "Invalid argument - %s\n", optarg);
+				fprintf(stderr, "Invalid argument: %s\n", optarg);
+				exit(1);
 				break;
 		}
 	}
 
-	// fprintf(stderr, "\n\nsizeof(*a -> start) * argc) - %d\n\n", (int)sizeof(*a -> start) * argc);
 	a -> start = smalloc(sizeof(*a -> start) * argc);
 
-	for (int i = 0; i < argc; i++) {
+	for (int i = optind; i < argc; i++) {
 
 		if (i == argc - 1) {
 
@@ -60,13 +67,10 @@ void parseArgs (args *a, int argc, char *argv[]) {
 
 		} else {
 
-			if (argv[i][0] == '/') {
-
-				int strLen = getStrLen(argv[i]) + 1;
-				a -> start[a -> nrStart] = smalloc(sizeof(char) * strLen);
-				strcpy(a -> start[a -> nrStart], argv[i]);
-				a -> nrStart++;
-			}
+			int strLen = getStrLen(argv[i]) + 1;
+			a -> start[a -> nrStart] = smalloc(sizeof(char) * strLen);
+			strcpy(a -> start[a -> nrStart], argv[i]);
+			a -> nrStart++;
 		}
 	}
 }
@@ -76,7 +80,7 @@ int strToInt (char *str) {
 	int sum = 0;
 	for (int i = 0; str[i] != '\0'; i++) {
 
-		sum = sum * 10 + str[i] - 0;
+		sum = sum * 10 + str[i] - '0';
 	}
 	return sum;
 }
@@ -90,7 +94,7 @@ int getStrLen (char *str) {
 
 void argsInit (args *a) {
 
-	a -> type = 'f';
+	a -> type = '\0';
 	a -> nrthr = 1;
 	a -> name = NULL;
 	a -> start = NULL;

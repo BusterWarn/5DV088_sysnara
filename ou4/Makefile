@@ -4,7 +4,7 @@ CFLAGS = -std=gnu11 -g -Wall -Wextra -Werror -Wmissing-declarations -Wmissing-pr
 all:				mfind
 
 mfind:				mfind.o queue.o parseMfind.o saferMemHandler.o
-	$(CC) mfind.o queue.o parseMfind.o saferMemHandler.o -o mfind
+	$(CC) -pthread mfind.o queue.o parseMfind.o saferMemHandler.o -o mfind
 
 mfind.o:			mfind.c mfind.h queue.h parseMfind.h
 	$(CC) $(CFLAGS) -c mfind.c
@@ -18,14 +18,20 @@ parseMfind.o:		parseMfind.c parseMfind.h saferMemHandler.h
 saferMemHandler.o:	saferMemHandler.c saferMemHandler.h
 	$(CC) $(CFLAGS) -c saferMemHandler.c
 
-run1:				mfind
-	./mfind -t d -p 15 /Documents/ wut2
+run:				mfind
+	./mfind -t f -p 10 /home/sersmoothie/Documents slibberslabber.tx 2> test.txt
 
-run2:				mfind
-	./mfind /Documents/ slibberslabber.tx
+run1: 				mfind
+	./mfind -t d -p 100 /home/ wutwut 2>test.txt
+
+runfromlink:		mfind
+	./mfind -p /home/sersmoothie/Documents/UMU/Kurser/sysnara/ou4/ou1/ linkedlist.h
+
+findlink:			mfind
+	./mfind -t l -p 123 /home/sersmoothie/Documents/ /home/Steam/ ou1
 
 valgrind:			mfind
-	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./mfind /Documents/ slibberslabber.tx
+	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./mfind -t f -p 10 /home/sersmoothie/Documents slibberslabber.tx
 
 clean:
 	rm -f mfind *.o core
