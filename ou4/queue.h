@@ -1,72 +1,67 @@
 /*
-* A dynamic single-linked list. Each element (node) in the list holds up to one
-* void pointer. The positon of the list is saved in the list's struct, and user
-* will not need to keep track of position.
+* A dynamic queue. Each element (node) in the list holds up to one
+* void pointer. The queue is FIFO - first element to be enqueued in the queue
+* will be the first to dequeue.
 *
 * Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
 *
-* Final build: 2018-09-26
+* Final build: 2018-10-26
 */
 
-#ifndef LINKEDLIST
-#define LINKEDLIST
+#ifndef __QUEUE__
+#define __QUEUE__
 
 typedef struct node node;
 
 typedef struct queue queue;
 
 /*
-* description: Creates and allocates memory for an empty list.
-* return: The list.
+* description: Creates and allocates memory for an empty queue.
+* return: The queue.
 */
 queue *queueEmpty (void);
 
 /*
-* description: Checks if list contains any elements.
-* param[in]: list - The list.
+* description: Checks if queue contains any elements.
+* param[in]: q - The queue.
 * return: If true; 1, else 0.
 */
 int queueIsEmpty (queue *q);
 
 /*
-* description: Gets the number of elements in list.
-* param[in]: list - The list.
-* return: The number of elements in list.
+* description: Gets the number of elements in quue.
+* param[in]: q - The queue.
+* return: The number of elements in the queue.
 */
 int queueGetSize (queue *q);
 
 /*
-* description:
-* param[in]: list - The list.
-* return: Void pointer to the value in the list.
+* description: Gets the value of the first element in the queue.
+* param[in]: q - The queue.
+* return: Void pointer to the value in the queue.
 */
 void *queueFront (queue *q);
 
 /*
-* description:
-* param[in]: list - The list.
+* description: Adds an element to the last place in the queue.
+* param[in]: q - The queue.
 * param[in]: value - Void pointer to the value the element will hold.
 */
 void queueEnqueue (queue *q, void *value);
 
 /*
-* description:
-* param[in]: list - The list.
+* description: Removes the first element in the queue, letting the next element
+* become the first. Will NOT free any memory.
+* param[in]: q - The queue.
 */
 void queueDequeue (queue *q);
 
 /*
-* description: Frees all memory allocated by the list, inluding the list.
-* param[in]: list - The list
+* description: Frees all memory allocated by the queue, inluding the queue. The
+* value will NOT be free'd.
+* param[in]: q - The queue
 */
 void queueKill (queue *q);
 
-/*
-* description: Checks if memory succesfully got allocated. If not, pointer will
-* contain NULL and program will exit with errno.
-* param[in]: mem - pointer to the allocated memory.
-*/
-void checkAlloc (void *mem);
 
-
-#endif //LINKEDLIST
+#endif //__QUEUE__
