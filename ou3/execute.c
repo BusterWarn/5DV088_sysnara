@@ -28,6 +28,7 @@ int dupPipe(int pip[2], int end, int destfd) {
 			if (destfd < 0) {
 
 				perror("Dup to pipe");
+				exit(1);
 			}
 		} else {
 
@@ -66,12 +67,13 @@ int redirect(char *filename, int flags, int destfd) {
 				if (dup2(destfd, STDIN_FILENO) < 0) {
 
 					perror("cannot dup stdin\n");
-					destfd = -1;
+					exit(1);
 				}
 				close(destfd);
 			} else {
 
 				perror("redirect stdin");
+				exit(1);
 			}
 		} else {
 
@@ -90,12 +92,13 @@ int redirect(char *filename, int flags, int destfd) {
 				if (dup2(destfd, STDOUT_FILENO) < 0) {
 
 					perror("redirect stdout");
-					destfd = -1;
+					exit(1);
 				}
 				close(destfd);
 			} else {
 
 				perror("redirect stdout");
+				exit(1);
 			}
 		} else {
 

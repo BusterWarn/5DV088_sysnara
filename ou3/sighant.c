@@ -9,6 +9,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <signal.h>
 #include "sighant.h"
 
@@ -27,9 +28,11 @@ void signalHandler (int signo, Sigfunc *sigFunc) {
 	if (sigemptyset(&act.sa_mask) < 0) {
 
 		perror("sigemptyset()");
+		exit(1);
 	}
 	if (sigaction(signo, &act, NULL) < 0) {
 
 		perror("sicacton()");
+		exit(1);
 	}
 }

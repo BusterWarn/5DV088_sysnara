@@ -13,6 +13,10 @@
 * Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
 *
 * Final build: 2018-10-09
+*
+* Modified by: Buster Hultgren Wärn
+* Date:	2018-11-06
+* What?	Added exit(1) calls for all systemcall checks.
 */
 
 #ifndef MISH

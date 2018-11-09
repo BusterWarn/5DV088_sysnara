@@ -13,6 +13,10 @@
 * Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
 *
 * Final build: 2018-10-09
+*
+* Modified by: Buster Hultgren Wärn
+* Date:	2018-11-06
+* What?	Added exit(1) calls for all systemcall checks.
 */
 
 #include <stdio.h>
@@ -184,7 +188,8 @@ void executeExternalCommands (int nrComms, command comLine[nrComms]) {
 
 		if (children[i] < 0 ) {					// FAILED FORK
 
-			perror("You forked up!");
+			perror("fork");
+			exit(1);
 		} else if (children[i] > 0) {			// PARENT
 
 			CHILDPIDS[NRCHILDREN] = children[i];
@@ -251,7 +256,7 @@ int openPipes(int nrPipes, int pipes[nrPipes][2]) {
 		if (pipe(pipes[i]) < 0) {
 
 			perror("Opening parent pipes");
-			noError = -1;
+			exit(1);
 		}
 	}
 	return noError;
@@ -269,10 +274,12 @@ void closePipes (int nrPipes, int pipes[nrPipes][2]) {
 		if (close(pipes[i][READ_END]) < 0) {
 
 			perror("Closing pipe's READ_END");
+			exit(1);
 		}
 		if (close(pipes[i][WRITE_END]) < 0) {
 
 			perror("Closing pipe's WRITE_END");
+			exit(1);
 		}
 	}
 }
@@ -290,6 +297,7 @@ void waitForChildren (int nrChildren, pid_t children[nrChildren]) {
 		if (waitpid(children[i], NULL, 0) < 0) {
 
 			perror("waitpid");
+			exit(1);
 		}
 	}
 }
@@ -307,6 +315,7 @@ void terminateChildren (int signo)  {
 		if (kill(CHILDPIDS[i], signo) < 0) {
 
 			perror("Terminating child process");
+			exit(1);
 		}
 	}
 	fprintf(stderr, "\n");
