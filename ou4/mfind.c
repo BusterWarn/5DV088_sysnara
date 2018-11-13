@@ -18,7 +18,14 @@
 *
 * Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
 *
-* Final build: 2018-10-26
+* Date: 2018-10-26
+*
+* Modified by: Buster Hultgren Wärn
+* Date: 2018-11-13
+* What? Changed condition lock condQueue to a semaphore mtxThrCounter to fix
+* some errors. Also changed function initMutexAndCond to initMutexAndSem - the
+* function now initiates a semaphore instead of a condition lock, and it takes
+* one argument - semValue.
 */
 
 #include <stdio.h>
@@ -28,6 +35,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -57,7 +65,7 @@ int main (int argc, char *argv[]) {
 */
 void runThreads (args *a) {
 
-	initMutexAndCond();
+	initMutexAndSem(a -> nrStart);
 
 	pthread_t trd[a -> nrthr];
 	trdArgs trdArg;
@@ -78,11 +86,13 @@ void runThreads (args *a) {
 	queueKill(trdArg.q);
 }
 
+
 /*
 * description: Initiates global mutexes mtxQueue, mtxThrCounter and also
-* global condition condQueue.
+* global semaphore semTrdSearch.
+* param[in]: semValue - The value to be set on semaphore.
 */
-void initMutexAndCond (void) {
+void initMutexAndSem (int semValue) {
 
 	int rc = 0;
 
@@ -96,9 +106,9 @@ void initMutexAndCond (void) {
 		fprintf(stderr, "phtread_mutex_init failed with error code %d\n", rc);
 		exit(1);
 	}
-	if ((rc = pthread_cond_init(&condQueue, NULL) != 0)) {
+	if ((rc = sem_init(&semTrdSearch, 0, semValue)) != 0) {
 
-		fprintf(stderr, "phtread_cond_init failed with error code %d\n", rc);
+		fprintf(stderr, "sem_init failed with error code %d\n", rc);
 		exit(1);
 	}
 }
@@ -192,24 +202,13 @@ void *mfind (void *arg) {
 
 	while (runLoop) {
 
+		sem_wait(&semTrdSearch);
+
 		pthread_mutex_lock(&mtxQueue);
 		if (!queueIsEmpty(trdArg -> q)) {
 
 			o = queueFront(trdArg -> q);
 			queueDequeue(trdArg -> q);
-		} else {
-
-			pthread_mutex_lock(&mtxThrCounter);
-			if (THRSRUNNING == 0) {
-
-				runLoop = 0;
-				pthread_cond_broadcast(&condQueue);
-			}
-			pthread_mutex_unlock(&mtxThrCounter);
-			if (runLoop) {
-
-				pthread_cond_wait(&condQueue, &mtxQueue);
-			}
 		}
 		pthread_mutex_unlock(&mtxQueue);
 
@@ -217,6 +216,15 @@ void *mfind (void *arg) {
 
 			*reads += trdSearchDir(trdArg -> q, o, trdArg -> target);
 			o = NULL;
+		} else {
+
+			pthread_mutex_lock(&mtxThrCounter);
+			if (THRSRUNNING == 0) {
+
+				runLoop = 0;
+				sem_post(&semTrdSearch);
+			}
+			pthread_mutex_unlock(&mtxThrCounter);
 		}
 	}
 
@@ -274,7 +282,7 @@ int trdSearchDir (queue *q, object *o, object *target) {
 							pthread_mutex_lock(&mtxQueue);
 							queueEnqueue(q, (void *)newObj);
 							pthread_mutex_unlock(&mtxQueue);
-							pthread_cond_signal(&condQueue);
+							sem_post(&semTrdSearch);
 						}
 					} else {				/* If entry is not a directory	*/
 
@@ -289,6 +297,12 @@ int trdSearchDir (queue *q, object *o, object *target) {
 	}
 	pthread_mutex_lock(&mtxThrCounter);
 	THRSRUNNING--;
+	pthread_mutex_lock(&mtxQueue);
+	if (queueIsEmpty(q) && THRSRUNNING == 0) {
+
+		sem_post(&semTrdSearch);
+	}
+	pthread_mutex_unlock(&mtxQueue);
 	pthread_mutex_unlock(&mtxThrCounter);
 
 	objectKill(o);

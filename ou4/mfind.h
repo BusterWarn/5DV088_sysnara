@@ -18,7 +18,14 @@
 *
 * Author: Buster Hultgren Wärn <dv17bhn@cs.umu.se>
 *
-* Final build: 2018-10-26
+* Date: 2018-10-26
+*
+* Modified by: Buster Hultgren Wärn
+* Date: 2018-11-13
+* What? Changed condition lock condQueue to a semaphore mtxThrCounter to fix
+* some errors. Also changed function initMutexAndCond to initMutexAndSem - the
+* function now initiates a semaphore instead of a condition lock, and it takes
+* one argument - semValue.
 */
 
 #ifndef __MFIND__
@@ -29,14 +36,14 @@
 /* Number of threads currently looking through a directory 					*/
 static int THRSRUNNING;
 
-/* Mutex variables for locking shared queue or global THRSRUNNING variable */
+/* Mutex variables for locking shared queue or global THRSRUNNING variable 	*/
 pthread_mutex_t mtxQueue;
 pthread_mutex_t mtxThrCounter;
 
-/* Mutex condition. If queue is empty, wait for signal 						*/
-pthread_cond_t condQueue;
+/* Semanphore for searching threads. Should be same as objects in queue		*/
+sem_t semTrdSearch;
 
-/*Typedefs for structs declared other files									*/
+/* Typedefs for structs declared other files								*/
 typedef struct args args;
 typedef struct queue queue;
 
@@ -63,9 +70,10 @@ void runThreads (args *a);
 
 /*
 * description: Initiates global mutexes mtxQueue, mtxThrCounter and also
-* global condition condQueue.
+* global semaphore semTrdSearch.
+* param[in]: semValue - The value to be set on semaphore.
 */
-void initMutexAndCond (void);
+void initMutexAndSem (int semValue);
 
 /*
 * description: Creates additional (non-main) threads. Threads are created to

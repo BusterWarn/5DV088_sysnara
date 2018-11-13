@@ -17,6 +17,6 @@ parseMfind.o:		parseMfind.c parseMfind.h saferMemHandler.h
 
 saferMemHandler.o:	saferMemHandler.c saferMemHandler.h
 	$(CC) $(CFLAGS) -c saferMemHandler.c
-
+	
 clean:
 	rm -f mfind *.o core

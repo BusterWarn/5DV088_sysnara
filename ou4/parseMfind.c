@@ -97,6 +97,12 @@ void parseArgs (args *a, int argc, char *argv[]) {
 			a -> nrStart++;
 		}
 	}
+
+	if (a -> nrStart < 1) {
+
+		fprintf(stderr, "No starting directory, cannot start search\n");
+		exit(1);
+	}
 }
 
 /*
