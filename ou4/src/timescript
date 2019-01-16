@@ -1,6 +1,0 @@
-#!/bin/bash
-
-for i in {1..10}
-do
-	time (./mfind -p $i /pkg comsol > /dev/null 2>&1 ;) 2>>out 
-done
